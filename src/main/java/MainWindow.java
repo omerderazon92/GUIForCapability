@@ -1,3 +1,5 @@
+import Target.Target;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -8,10 +10,14 @@ import java.util.List;
 public class MainWindow extends JFrame {
 
     JPanel constantInfoArea, targetsArea;
-    Button addTargetButton, addFilterButton;
+    Button addTargetButton, addFilterButton, generateCommand;
 
     JPanel filtersPanel;
     List<JTextField> filtersTextFieldsList = new ArrayList<JTextField>();
+    JComboBox connectorsDrop;
+    String[] connectors = {"OR", "AND"};
+
+    List<Target> targets = new ArrayList<Target>();
 
     public MainWindow() {
         createConstantArea();
@@ -23,6 +29,14 @@ public class MainWindow extends JFrame {
         addTargetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 addFilterButton.setEnabled(true);
+                connectorsDrop.setEnabled(true);
+                generateCommand.setEnabled(true);
+
+                if (!targets.isEmpty()) {
+                    setTargetInfo();
+                    cleanTargetPanel();
+                }
+                targets.add(new Target());
             }
         });
 
@@ -36,6 +50,31 @@ public class MainWindow extends JFrame {
                 targetsArea.repaint();
             }
         });
+
+        generateCommand.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                setTargetInfo();
+            }
+        });
+    }
+
+    private void cleanTargetPanel() {
+        for (JTextField filterTextField : filtersTextFieldsList) {
+            filtersPanel.remove(filterTextField);
+        }
+        targetsArea.revalidate();
+        targetsArea.repaint();
+    }
+
+    private void setTargetInfo() {
+        List<String> filters = new ArrayList<String>();
+        Target target = targets.get(targets.size() - 1);
+        for (JTextField filterTextField : filtersTextFieldsList) {
+            filters.add(filterTextField.getText());
+        }
+
+        target.setConnector(connectorsDrop.getSelectedItem().toString());
+        target.setFilter(filters);
     }
 
     private void createConstantArea() {
@@ -77,18 +116,24 @@ public class MainWindow extends JFrame {
     }
 
     private void createTargetArea() {
-        targetsArea = new JPanel(new FlowLayout());
+        targetsArea = new JPanel(new GridLayout(1, 2));
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
         addTargetButton = new Button("Add Target");
         addFilterButton = new Button("Add Filter");
+        generateCommand = new Button("Generate Command");
+        connectorsDrop = new JComboBox(connectors);
+
         addFilterButton.setEnabled(false);
+        connectorsDrop.setEnabled(false);
+        generateCommand.setEnabled(false);
         buttonPanel.add(addTargetButton);
         buttonPanel.add(addFilterButton);
+        buttonPanel.add(connectorsDrop);
+        buttonPanel.add(generateCommand);
 
         filtersPanel = new JPanel();
         filtersPanel.setLayout(new BoxLayout(filtersPanel, BoxLayout.Y_AXIS));
-        filtersPanel.setBackground(Color.PINK);
 
         targetsArea.add(buttonPanel);
         targetsArea.add(filtersPanel);
