@@ -87,6 +87,9 @@ public class MainWindow extends JFrame {
                 cleanTargetPanel();
                 cleanConstantInfoPanel();
                 targets = new ArrayList<Target>();
+                addFilterButton.setEnabled(false);
+                connectorsDrop.setEnabled(false);
+                generateCommand.setEnabled(false);
             }
         });
     }
