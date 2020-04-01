@@ -14,6 +14,8 @@ import java.awt.datatransfer.Clipboard;
 public class MainWindow extends JFrame {
 
     JPanel constantInfoArea, targetsArea;
+    Button addTargetButton, addFilterButton;
+    List<JTextField> filtersTextFields = new ArrayList<JTextField>();
 
     public MainWindow() {
         createConstantArea();
@@ -21,68 +23,66 @@ public class MainWindow extends JFrame {
 
         add(constantInfoArea);
         add(targetsArea);
+
+        addTargetButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addFilterButton.setEnabled(true);
+            }
+        });
     }
 
     private void createConstantArea() {
-        constantInfoArea = new JPanel(new GridBagLayout());
-        JLabel clusterTitle, steppingTitle, budgetTitle, regressionsTitle;
+        JLabel clusterTitle, steppingTitle, budgetTitle;
         JTextField cluster, stepping, budget;
+        JLabel regressionsTitle;
         JTextArea regressions;
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.weightx = 1.0 / 9.0;
-        gbc.weighty = 1.0 / 7.0;
+        constantInfoArea = new JPanel(new GridLayout(4, 1));
 
-        //FIRST ROW
+        JPanel titlesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 175, 10));
         clusterTitle = new JLabel("Cluster");
-        gbc.gridx = 2;
-        gbc.gridy = 0;
-        constantInfoArea.add(clusterTitle, gbc);
-
         steppingTitle = new JLabel("Stepping");
-        gbc.gridx = 4;
-        gbc.gridy = 0;
-        constantInfoArea.add(steppingTitle, gbc);
-
         budgetTitle = new JLabel("Budget");
-        gbc.gridx = 6;
-        gbc.gridy = 0;
-        constantInfoArea.add(budgetTitle, gbc);
+        titlesPanel.add(clusterTitle);
+        titlesPanel.add(steppingTitle);
+        titlesPanel.add(budgetTitle);
 
-
-        //SECOND ROW
+        JPanel textFieldsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 100, 10));
         cluster = new JTextField(10);
-        gbc.gridx = 2;
-        gbc.gridy = 1;
-        constantInfoArea.add(cluster, gbc);
-
         stepping = new JTextField(10);
-        gbc.gridx = 4;
-        gbc.gridy = 1;
-        constantInfoArea.add(stepping, gbc);
-
         budget = new JTextField(10);
-        gbc.gridx = 6;
-        gbc.gridy = 1;
-        constantInfoArea.add(budget, gbc);
+        textFieldsPanel.add(cluster);
+        textFieldsPanel.add(stepping);
+        textFieldsPanel.add(budget);
 
-        //THIRD ROW
+        JPanel regressionsTitlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 175, 10));
         regressionsTitle = new JLabel("Regressions");
-        gbc.gridx = 4;
-        gbc.gridy = 5;
-        constantInfoArea.add(regressionsTitle, gbc);
+        regressionsTitlePanel.add(regressionsTitle);
 
-        //FOURTH ROW
-        regressions = new JTextArea(2, 40);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = 4;
-        gbc.gridy = 6;
-        constantInfoArea.add(regressions, gbc);
+        JPanel regressionsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 175, 10));
+        regressions = new JTextArea(2, 100);
+        regressionsPanel.add(regressions);
+
+        constantInfoArea.add(titlesPanel);
+        constantInfoArea.add(textFieldsPanel);
+        constantInfoArea.add(regressionsTitlePanel);
+        constantInfoArea.add(regressionsPanel);
     }
 
     private void createTargetArea() {
-        targetsArea = new JPanel(null);
-        targetsArea.setBackground(Color.red);
+        targetsArea = new JPanel(new GridLayout(4, 1));
+
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        addTargetButton = new Button("Add Target");
+        addFilterButton = new Button("Add filter");
+        addFilterButton.setEnabled(false);
+        buttonPanel.add(addTargetButton);
+        buttonPanel.add(addFilterButton);
+
+        JPanel filtersPanel = new JPanel(new GridLayout(1, 1));
+
+
+        targetsArea.add(buttonPanel);
     }
 
 
@@ -90,7 +90,7 @@ public class MainWindow extends JFrame {
         MainWindow mainWindow = new MainWindow();
         mainWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
         mainWindow.setUndecorated(true);
-        mainWindow.setLayout(new GridLayout(2, 1));
+        mainWindow.setLayout(new FlowLayout());
         mainWindow.setVisible(true);
     }
 }
