@@ -56,16 +56,19 @@ public class MainWindow extends JFrame {
                     String clusterText = cluster.getText();
                     String steppingText = stepping.getText();
                     String regressiosText = regressions.getText();
+
                     if (clusterText.isEmpty() || steppingText.isEmpty() || regressiosText.isEmpty() || budgetText == 0) {
                         JOptionPane.showMessageDialog(null, "You have to fill cluster, stepping, regressions and budget :)");
                         return;
                     }
+
                     setCurrentTargetInfo();
                     cleanTargetPanel();
                     cleanConstantInfoPanel();
+
                     CommandsManager commandsManager = new CommandsManager(clusterText, steppingText, regressiosText, budgetText, targets);
                     String finalCommand = commandsManager.generateCommand();
-                    System.out.println(finalCommand);
+
                     JOptionPane.showMessageDialog(null, finalCommand);
 
                 } catch (NumberFormatException exception) {
