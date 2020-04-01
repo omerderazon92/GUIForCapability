@@ -10,7 +10,7 @@ import java.util.List;
 public class MainWindow extends JFrame {
 
     JPanel constantInfoArea, targetsArea;
-    Button addTargetButton, addFilterButton, generateCommand;
+    Button addTargetButton, addFilterButton, generateCommand, resetTargetButton, resetAllButton;
     JTextField cluster, stepping, budget, regressions;
 
     JPanel filtersPanel;
@@ -62,6 +62,7 @@ public class MainWindow extends JFrame {
                     }
                     setCurrentTargetInfo();
                     cleanTargetPanel();
+                    cleanConstantInfoPanel();
                     CommandsManager commandsManager = new CommandsManager(clusterText, steppingText, regressiosText, budgetText, targets);
                     String finalCommand = commandsManager.generateCommand();
                     System.out.println(finalCommand);
@@ -72,6 +73,29 @@ public class MainWindow extends JFrame {
                 }
             }
         });
+
+        resetTargetButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cleanTargetPanel();
+            }
+        });
+
+        resetAllButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cleanTargetPanel();
+                cleanConstantInfoPanel();
+                targets = new ArrayList<Target>();
+            }
+        });
+    }
+
+    private void cleanConstantInfoPanel() {
+        cluster.setText("");
+        regressions.setText("");
+        budget.setText("");
+        stepping.setText("");
     }
 
     private void addFilterTextField() {
@@ -146,11 +170,15 @@ public class MainWindow extends JFrame {
         addTargetButton = new Button("Add Target");
         addFilterButton = new Button("Add Filter");
         generateCommand = new Button("Generate Command");
+        resetTargetButton = new Button("Reset Target");
+        resetAllButton = new Button("Reset All");
         connectorsDrop = new JComboBox(connectors);
 
         addFilterButton.setEnabled(false);
         connectorsDrop.setEnabled(false);
         generateCommand.setEnabled(false);
+        buttonPanel.add(resetAllButton);
+        buttonPanel.add(resetTargetButton);
         buttonPanel.add(addTargetButton);
         buttonPanel.add(addFilterButton);
         buttonPanel.add(connectorsDrop);
