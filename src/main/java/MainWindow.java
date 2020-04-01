@@ -11,11 +11,11 @@ public class MainWindow extends JFrame {
 
     JPanel constantInfoArea, targetsArea;
     Button addTargetButton, addFilterButton, generateCommand;
-    JTextField cluster, stepping, budget;
-    JTextArea regressions;
+    JTextField cluster, stepping, budget, regressions;
 
     JPanel filtersPanel;
     List<JTextField> filtersTextFieldsList = new ArrayList<JTextField>();
+
     JComboBox connectorsDrop;
     String[] connectors = {"OR", "AND"};
 
@@ -38,39 +38,56 @@ public class MainWindow extends JFrame {
                     setCurrentTargetInfo();
                     cleanTargetPanel();
                 }
+                addFilterTextField();
                 targets.add(new Target());
             }
         });
 
         addFilterButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                JTextField filterTextField = new JTextField("Filters", 40);
-                filtersTextFieldsList.add(filterTextField);
-
-                filtersPanel.add(filterTextField);
-                targetsArea.revalidate();
-                targetsArea.repaint();
+                addFilterTextField();
             }
         });
 
         generateCommand.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                setCurrentTargetInfo();
-                cleanTargetPanel();
-                String clusterText = cluster.getText();
-                String steppingText = stepping.getText();
-                String regressiosText = regressions.getText();
-                int budgetText = Integer.parseInt(budget.getText());
-                CommandsManager commandsManager = new CommandsManager(clusterText, steppingText, regressiosText, budgetText, targets);
-                commandsManager.generateCommand();
+                try {
+                    int budgetText = Integer.parseInt(budget.getText());
+                    String clusterText = cluster.getText();
+                    String steppingText = stepping.getText();
+                    String regressiosText = regressions.getText();
+                    if (clusterText.isEmpty() || steppingText.isEmpty() || regressiosText.isEmpty() || budgetText == 0) {
+                        JOptionPane.showMessageDialog(null, "You have to fill cluster, stepping, regressions and budget :)");
+                        return;
+                    }
+                    setCurrentTargetInfo();
+                    cleanTargetPanel();
+                    CommandsManager commandsManager = new CommandsManager(clusterText, steppingText, regressiosText, budgetText, targets);
+                    String finalCommand = commandsManager.generateCommand();
+                    System.out.println(finalCommand);
+                    JOptionPane.showMessageDialog(null, finalCommand);
+
+                } catch (NumberFormatException exception) {
+                    JOptionPane.showMessageDialog(null, "The budget should be an integer :)");
+                }
             }
         });
+    }
+
+    private void addFilterTextField() {
+        JTextField filterTextField = new JTextField("Filter", 40);
+        filtersTextFieldsList.add(filterTextField);
+
+        filtersPanel.add(filterTextField);
+        targetsArea.revalidate();
+        targetsArea.repaint();
     }
 
     private void cleanTargetPanel() {
         for (JTextField filterTextField : filtersTextFieldsList) {
             filtersPanel.remove(filterTextField);
         }
+        filtersTextFieldsList = new ArrayList<JTextField>();
         targetsArea.revalidate();
         targetsArea.repaint();
     }
@@ -113,7 +130,7 @@ public class MainWindow extends JFrame {
         regressionsTitlePanel.add(regressionsTitle);
 
         JPanel regressionsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 175, 10));
-        regressions = new JTextArea(2, 100);
+        regressions = new JTextField(100);
         regressionsPanel.add(regressions);
 
         constantInfoArea.add(titlesPanel);

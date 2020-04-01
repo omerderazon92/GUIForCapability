@@ -1,5 +1,6 @@
 import Target.Target;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommandsManager {
@@ -15,24 +16,46 @@ public class CommandsManager {
         this.targets = targets;
     }
 
-    public void generateCommand() {
+    public String generateCommand() {
+        removeRedundantTargets();
         StringBuilder targetsStringBuilder = createTargetForm();
-        String commandStringBuilder = "--cluster " + cluster +
+        return "--cluster " + cluster +
                 " --stepping " + stepping +
-                " --regressions " + regressions +
+                " --regressions " + "\"" + regressions + "\"" +
                 " --budget " + budget +
                 targetsStringBuilder;
-        System.out.println(commandStringBuilder);
+    }
+
+    private void removeRedundantTargets() {
+        List<Target> potentialForRemoval = new ArrayList<Target>();
+        for (Target target : targets) {
+            int numberOfEmptyFilters = 0;
+            for (String filter : target.getFilters()) {
+                if (filter.equals("Filter"))
+                    numberOfEmptyFilters += 1;
+                if (numberOfEmptyFilters == target.getFilters().size()) {
+                    potentialForRemoval.add(target);
+                }
+            }
+        }
+        for (Target forRemoval : potentialForRemoval) {
+            targets.remove(forRemoval);
+        }
     }
 
     private StringBuilder createTargetForm() {
         StringBuilder stringBuilder = new StringBuilder();
         for (Target target : targets) {
-            stringBuilder.append(" --targets ");
-            for (String filter : target.getFilter()) {
+            stringBuilder.append(" --targets ").append("\"");
+            for (String filter : target.getFilters()) {
+                if (filter.equals("Filter")) {
+                    continue;
+                }
                 stringBuilder.append("#filter=").append(filter);
             }
-            stringBuilder.append("#connector=").append(target.getConnector());
+            stringBuilder.append("#connector=")
+                    .append(target.getConnector())
+                    .append("\"");
         }
         return stringBuilder;
     }

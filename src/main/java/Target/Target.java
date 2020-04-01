@@ -15,7 +15,7 @@ public class Target {
         this.connector = connector;
     }
 
-    public List<String> getFilter() {
+    public List<String> getFilters() {
         return filter;
     }
 
