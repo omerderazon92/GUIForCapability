@@ -11,6 +11,8 @@ public class MainWindow extends JFrame {
 
     JPanel constantInfoArea, targetsArea;
     Button addTargetButton, addFilterButton, generateCommand;
+    JTextField cluster, stepping, budget;
+    JTextArea regressions;
 
     JPanel filtersPanel;
     List<JTextField> filtersTextFieldsList = new ArrayList<JTextField>();
@@ -33,7 +35,7 @@ public class MainWindow extends JFrame {
                 generateCommand.setEnabled(true);
 
                 if (!targets.isEmpty()) {
-                    setTargetInfo();
+                    setCurrentTargetInfo();
                     cleanTargetPanel();
                 }
                 targets.add(new Target());
@@ -53,7 +55,14 @@ public class MainWindow extends JFrame {
 
         generateCommand.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                setTargetInfo();
+                setCurrentTargetInfo();
+                cleanTargetPanel();
+                String clusterText = cluster.getText();
+                String steppingText = stepping.getText();
+                String regressiosText = regressions.getText();
+                int budgetText = Integer.parseInt(budget.getText());
+                CommandsManager commandsManager = new CommandsManager(clusterText, steppingText, regressiosText, budgetText, targets);
+                commandsManager.generateCommand();
             }
         });
     }
@@ -66,7 +75,7 @@ public class MainWindow extends JFrame {
         targetsArea.repaint();
     }
 
-    private void setTargetInfo() {
+    private void setCurrentTargetInfo() {
         List<String> filters = new ArrayList<String>();
         Target target = targets.get(targets.size() - 1);
         for (JTextField filterTextField : filtersTextFieldsList) {
@@ -79,9 +88,7 @@ public class MainWindow extends JFrame {
 
     private void createConstantArea() {
         JLabel clusterTitle, steppingTitle, budgetTitle;
-        JTextField cluster, stepping, budget;
         JLabel regressionsTitle;
-        JTextArea regressions;
 
         constantInfoArea = new JPanel(new GridLayout(4, 1));
 
