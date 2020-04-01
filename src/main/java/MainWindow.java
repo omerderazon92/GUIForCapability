@@ -1,21 +1,17 @@
-
-import Target.Target;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.awt.datatransfer.StringSelection;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
 
 public class MainWindow extends JFrame {
 
     JPanel constantInfoArea, targetsArea;
     Button addTargetButton, addFilterButton;
-    List<JTextField> filtersTextFields = new ArrayList<JTextField>();
+
+    JPanel filtersPanel;
+    List<JTextField> filtersTextFieldsList = new ArrayList<JTextField>();
 
     public MainWindow() {
         createConstantArea();
@@ -27,6 +23,17 @@ public class MainWindow extends JFrame {
         addTargetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 addFilterButton.setEnabled(true);
+            }
+        });
+
+        addFilterButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JTextField filterTextField = new JTextField("Filters", 40);
+                filtersTextFieldsList.add(filterTextField);
+
+                filtersPanel.add(filterTextField);
+                targetsArea.revalidate();
+                targetsArea.repaint();
             }
         });
     }
@@ -70,19 +77,21 @@ public class MainWindow extends JFrame {
     }
 
     private void createTargetArea() {
-        targetsArea = new JPanel(new GridLayout(4, 1));
+        targetsArea = new JPanel(new FlowLayout());
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
         addTargetButton = new Button("Add Target");
-        addFilterButton = new Button("Add filter");
+        addFilterButton = new Button("Add Filter");
         addFilterButton.setEnabled(false);
         buttonPanel.add(addTargetButton);
         buttonPanel.add(addFilterButton);
 
-        JPanel filtersPanel = new JPanel(new GridLayout(1, 1));
-
+        filtersPanel = new JPanel();
+        filtersPanel.setLayout(new BoxLayout(filtersPanel, BoxLayout.Y_AXIS));
+        filtersPanel.setBackground(Color.PINK);
 
         targetsArea.add(buttonPanel);
+        targetsArea.add(filtersPanel);
     }
 
 
