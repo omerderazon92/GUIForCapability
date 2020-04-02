@@ -2,6 +2,8 @@ import Target.Target;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -68,7 +70,9 @@ public class MainWindow extends JFrame {
 
                     CommandsManager commandsManager = new CommandsManager(clusterText, steppingText, regressiosText, budgetText, targets);
                     String finalCommand = commandsManager.generateCommand();
-
+                    StringSelection stringSelection = new StringSelection(finalCommand);
+                    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                    clipboard.setContents(stringSelection, null);
                     JOptionPane.showMessageDialog(null, finalCommand);
 
                 } catch (NumberFormatException exception) {
