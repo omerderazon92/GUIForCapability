@@ -11,19 +11,15 @@ import java.util.List;
 
 public class MainWindow extends JFrame {
 
-    JPanel constantInfoArea, targetsArea;
+    JPanel constantInfoArea, targetsArea, filtersPanel;
     Button addTargetButton, addFilterButton, generateCommand, resetTargetButton, resetAllButton;
     JTextField cluster, stepping, budget, regressions;
-
     JLabel numberOfTargetsLabel;
-
-    JPanel filtersPanel;
-    List<JTextField> filtersTextFieldsList = new ArrayList<JTextField>();
-
     JComboBox connectorsDrop;
-    String[] connectors = {"OR", "AND"};
 
+    List<JTextField> filtersTextFieldsList = new ArrayList<JTextField>();
     List<Target> targets = new ArrayList<Target>();
+    String[] connectors = {"OR", "AND"};
 
     public MainWindow() {
         createConstantArea();
@@ -63,21 +59,19 @@ public class MainWindow extends JFrame {
                     String regressiosText = regressions.getText();
 
                     if (clusterText.isEmpty() || steppingText.isEmpty() || regressiosText.isEmpty() || budgetText == 0) {
-                        JOptionPane.showMessageDialog(null, "You have to fill cluster, stepping, regressions and budget :)");
+                        popUpDialog("You have to fill cluster, stepping, regressions and budget :)");
                         return;
                     }
 
                     setCurrentTargetInfo();
                     cleanTargetPanel();
                     cleanConstantInfoPanel();
-                    CommandsManager commandsManager = new CommandsManager(clusterText, steppingText, regressiosText, budgetText, targets);
-                    String finalCommand = commandsManager.generateCommand();
-                    copyCommandToClipboard(finalCommand);
-                    JOptionPane.showMessageDialog(null, finalCommand);
+                    String finalCommand = generateCommandAndCopyToClipboard(budgetText, clusterText, steppingText, regressiosText);
+                    popUpDialog(finalCommand);
 
                     deleteTargetsAndLockButtons();
                 } catch (NumberFormatException exception) {
-                    JOptionPane.showMessageDialog(null, "The budget should be an integer :)");
+                    popUpDialog("The budget should be an integer :)");
                 }
             }
         });
@@ -97,6 +91,18 @@ public class MainWindow extends JFrame {
                 deleteTargetsAndLockButtons();
             }
         });
+        setTitle("Capability Manager Command GUI- Version 1.0");
+    }
+
+    private void popUpDialog(String finalCommand) {
+        JOptionPane.showMessageDialog(null, finalCommand);
+    }
+
+    private String generateCommandAndCopyToClipboard(int budgetText, String clusterText, String steppingText, String regressiosText) {
+        CommandsManager commandsManager = new CommandsManager(clusterText, steppingText, regressiosText, budgetText, targets);
+        String finalCommand = commandsManager.generateCommand();
+        copyCommandToClipboard(finalCommand);
+        return finalCommand;
     }
 
     private void deleteTargetsAndLockButtons() {
@@ -221,8 +227,9 @@ public class MainWindow extends JFrame {
 
     public static void main(String[] args) {
         MainWindow mainWindow = new MainWindow();
-        mainWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        mainWindow.setUndecorated(true);
+//        mainWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
+//        mainWindow.setUndecorated(true);
+            mainWindow.setSize(new Dimension(1450, 750));
         mainWindow.setLayout(new FlowLayout());
         mainWindow.setVisible(true);
     }
