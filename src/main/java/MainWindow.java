@@ -15,6 +15,8 @@ public class MainWindow extends JFrame {
     Button addTargetButton, addFilterButton, generateCommand, resetTargetButton, resetAllButton;
     JTextField cluster, stepping, budget, regressions;
 
+    JLabel numberOfTargetsLabel;
+
     JPanel filtersPanel;
     List<JTextField> filtersTextFieldsList = new ArrayList<JTextField>();
 
@@ -39,6 +41,7 @@ public class MainWindow extends JFrame {
                 if (!targets.isEmpty()) {
                     setCurrentTargetInfo();
                     cleanTargetPanel();
+                    numberOfTargetsLabel.setText("Number Of Targets: " + targets.size());
                 }
                 addFilterTextField();
                 targets.add(new Target());
@@ -67,14 +70,12 @@ public class MainWindow extends JFrame {
                     setCurrentTargetInfo();
                     cleanTargetPanel();
                     cleanConstantInfoPanel();
-
                     CommandsManager commandsManager = new CommandsManager(clusterText, steppingText, regressiosText, budgetText, targets);
                     String finalCommand = commandsManager.generateCommand();
-                    StringSelection stringSelection = new StringSelection(finalCommand);
-                    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                    clipboard.setContents(stringSelection, null);
+                    copyCommandToClipboard(finalCommand);
                     JOptionPane.showMessageDialog(null, finalCommand);
 
+                    deleteTargetsAndLockButtons();
                 } catch (NumberFormatException exception) {
                     JOptionPane.showMessageDialog(null, "The budget should be an integer :)");
                 }
@@ -93,12 +94,23 @@ public class MainWindow extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 cleanTargetPanel();
                 cleanConstantInfoPanel();
-                targets = new ArrayList<Target>();
-                addFilterButton.setEnabled(false);
-                connectorsDrop.setEnabled(false);
-                generateCommand.setEnabled(false);
+                deleteTargetsAndLockButtons();
             }
         });
+    }
+
+    private void deleteTargetsAndLockButtons() {
+        targets = new ArrayList<Target>();
+        numberOfTargetsLabel.setText("Number Of Targets: " + targets.size());
+        addFilterButton.setEnabled(false);
+        connectorsDrop.setEnabled(false);
+        generateCommand.setEnabled(false);
+    }
+
+    private void copyCommandToClipboard(String finalCommand) {
+        StringSelection stringSelection = new StringSelection(finalCommand);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(stringSelection, null);
     }
 
     private void cleanConstantInfoPanel() {
@@ -141,7 +153,7 @@ public class MainWindow extends JFrame {
         JLabel clusterTitle, steppingTitle, budgetTitle;
         JLabel regressionsTitle;
 
-        constantInfoArea = new JPanel(new GridLayout(4, 1));
+        constantInfoArea = new JPanel(new GridLayout(5, 1));
 
         JPanel titlesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 175, 10));
         clusterTitle = new JLabel("Cluster");
@@ -167,10 +179,15 @@ public class MainWindow extends JFrame {
         regressions = new JTextField(100);
         regressionsPanel.add(regressions);
 
+        JPanel numberOfTargetsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 175, 10));
+        numberOfTargetsLabel = new JLabel("Number Of Targets: " + targets.size());
+        numberOfTargetsPanel.add(numberOfTargetsLabel);
+
         constantInfoArea.add(titlesPanel);
         constantInfoArea.add(textFieldsPanel);
         constantInfoArea.add(regressionsTitlePanel);
         constantInfoArea.add(regressionsPanel);
+        constantInfoArea.add(numberOfTargetsPanel);
     }
 
     private void createTargetArea() {
