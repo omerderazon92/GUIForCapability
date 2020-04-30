@@ -19,11 +19,13 @@ public class CommandsManager {
     public String generateCommand() {
         removeRedundantTargets();
         StringBuilder targetsStringBuilder = createTargetForm();
-        return "--cluster " + cluster +
+        String command = " --cluster " + cluster +
                 " --stepping " + stepping +
                 " --regressions " + "\"" + regressions + "\"" +
                 " --budget " + budget +
                 targetsStringBuilder;
+
+        return "python3 /applocaldata/cliff/pycharm_remote_projects/oderazon/CapabilitiesManager/capability_manager/cli/cli_manager.py" + command;
     }
 
     private void removeRedundantTargets() {

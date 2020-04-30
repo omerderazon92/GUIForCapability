@@ -95,9 +95,9 @@ public class MainWindow extends JFrame {
     }
 
     private void popUpDialog(String finalCommand) {
-        JOptionPane.showMessageDialog(null, finalCommand);
+        JOptionPane.showMessageDialog(this, finalCommand);
     }
-
+    
     private String generateCommandAndCopyToClipboard(int budgetText, String clusterText, String steppingText, String regressiosText) {
         CommandsManager commandsManager = new CommandsManager(clusterText, steppingText, regressiosText, budgetText, targets);
         String finalCommand = commandsManager.generateCommand();
@@ -227,9 +227,7 @@ public class MainWindow extends JFrame {
 
     public static void main(String[] args) {
         MainWindow mainWindow = new MainWindow();
-//        mainWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
-//        mainWindow.setUndecorated(true);
-            mainWindow.setSize(new Dimension(1450, 750));
+        mainWindow.setSize(new Dimension(1450, 750));
         mainWindow.setLayout(new FlowLayout());
         mainWindow.setVisible(true);
     }
