@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: MainWindow
+Class-Path: /Users/oderazon/DesignProjects/GUIForCMD/target/classes
+

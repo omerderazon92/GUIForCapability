@@ -1,125 +1,234 @@
-
 import Target.Target;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.awt.datatransfer.StringSelection;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
 
 public class MainWindow extends JFrame {
 
-    JTextField clusterTextField, steppingTextField, budgetTextField, regressionsTextField;
-    JLabel clusterLabel, steppingLabel, regressionsLabel, budgetLabel;
-    Button addTargetButton, addFilterButton, generateCommandButton;
+    JPanel constantInfoArea, targetsArea, filtersPanel;
+    Button addTargetButton, addFilterButton, generateCommand, resetTargetButton, resetAllButton;
+    JTextField cluster, stepping, budget, regressions;
+    JLabel numberOfTargetsLabel;
+    JComboBox connectorsDrop;
 
-    //Dynamically targets
-    int numberOfTargets = 0;
-    List<JTextField> textFields = new ArrayList<JTextField>();
-
+    List<JTextField> filtersTextFieldsList = new ArrayList<JTextField>();
     List<Target> targets = new ArrayList<Target>();
+    String[] connectors = {"OR", "AND"};
 
     public MainWindow() {
-        clusterLabel = new JLabel("Cluster");
-        clusterLabel.setBounds(350, 10, 100, 20);
-        clusterTextField = new JTextField();
-        clusterTextField.setBounds(350, 30, 100, 30);
+        createConstantArea();
+        createTargetArea();
 
-        steppingLabel = new JLabel("Stepping");
-        steppingLabel.setBounds(450, 10, 100, 20);
-        steppingTextField = new JTextField();
-        steppingTextField.setBounds(450, 30, 100, 30);
-
-        budgetLabel = new JLabel("Budget");
-        budgetLabel.setBounds(550, 10, 100, 20);
-        budgetTextField = new JTextField();
-        budgetTextField.setBounds(550, 30, 100, 30);
-
-        regressionsLabel = new JLabel("Regressions");
-        regressionsLabel.setBounds(450, 80, 100, 20);
-        regressionsTextField = new JTextField();
-        regressionsTextField.setBounds(50, 100, 900, 30);
-
-        addTargetButton = new Button("Add Target");
-        addTargetButton.setBounds(400, 140, 100, 40);
-
-        generateCommandButton = new Button("Create Command");
-        generateCommandButton.setBounds(500, 140, 120, 40);
+        add(constantInfoArea);
+        add(targetsArea);
 
         addTargetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                addFilterButton.setEnabled(true);
+                connectorsDrop.setEnabled(true);
+                generateCommand.setEnabled(true);
 
-                if (numberOfTargets == 0) {
-                    add(addFilterButton);
+                if (!targets.isEmpty()) {
+                    setCurrentTargetInfo();
+                    cleanTargetPanel();
+                    numberOfTargetsLabel.setText("Number Of Targets: " + targets.size());
                 }
-
-                if (numberOfTargets > 0) {
-                    cleanScreen();
-                }
-
-                numberOfTargets += 1;
+                addFilterTextField();
+                targets.add(new Target());
             }
         });
 
-        addFilterButton = new Button("Add Filter");
-        addFilterButton.setBounds(450, 180, 100, 40);
         addFilterButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                JTextField filterTextField;
-                if (!textFields.isEmpty()) {
-                    filterTextField = new JTextField("Filter");
-                    JTextField view = textFields.get(textFields.size() - 1);
-                    filterTextField.setBounds(view.getBounds().x, view.getBounds().y + 30, 900, 30);
-                } else {
-                    filterTextField = new JTextField("Connector");
-                    filterTextField.setBounds(50, 250, 900, 30);
-                }
-                add(filterTextField);
-                textFields.add(filterTextField);
+                addFilterTextField();
             }
         });
 
-        generateCommandButton.addActionListener(new ActionListener() {
+        generateCommand.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String myString = "--cluster msid --regressions '123 456' --budget 50 --stepping a0 --targets 'bucket_string like 'a' and bucket_id like 'b''";
-                StringSelection stringSelection = new StringSelection(myString);
-                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                clipboard.setContents(stringSelection, null);
+                try {
+                    int budgetText = Integer.parseInt(budget.getText());
+                    String clusterText = cluster.getText();
+                    String steppingText = stepping.getText();
+                    String regressiosText = regressions.getText();
+
+                    if (clusterText.isEmpty() || steppingText.isEmpty() || regressiosText.isEmpty() || budgetText == 0) {
+                        popUpDialog("You have to fill cluster, stepping, regressions and budget :)");
+                        return;
+                    }
+
+                    setCurrentTargetInfo();
+                    cleanTargetPanel();
+                    cleanConstantInfoPanel();
+                    String finalCommand = generateCommandAndCopyToClipboard(budgetText, clusterText, steppingText, regressiosText);
+                    popUpDialog(finalCommand);
+
+                    deleteTargetsAndLockButtons();
+                } catch (NumberFormatException exception) {
+                    popUpDialog("The budget should be an integer :)");
+                }
             }
         });
 
-        add(generateCommandButton);
-        add(addTargetButton);
+        resetTargetButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cleanTargetPanel();
+            }
+        });
 
-        add(clusterLabel);
-        add(steppingLabel);
-        add(budgetLabel);
-        add(regressionsLabel);
-
-        add(budgetTextField);
-        add(clusterTextField);
-        add(steppingTextField);
-        add(regressionsTextField);
+        resetAllButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cleanTargetPanel();
+                cleanConstantInfoPanel();
+                deleteTargetsAndLockButtons();
+            }
+        });
+        setTitle("Capability Manager Command GUI- Version 1.0");
     }
 
-    private void cleanScreen() {
-        for (JTextField textField : textFields) {
-            remove(textField);
+    private void popUpDialog(String finalCommand) {
+        JOptionPane.showMessageDialog(this, finalCommand);
+    }
+    
+    private String generateCommandAndCopyToClipboard(int budgetText, String clusterText, String steppingText, String regressiosText) {
+        CommandsManager commandsManager = new CommandsManager(clusterText, steppingText, regressiosText, budgetText, targets);
+        String finalCommand = commandsManager.generateCommand();
+        copyCommandToClipboard(finalCommand);
+        return finalCommand;
+    }
+
+    private void deleteTargetsAndLockButtons() {
+        targets = new ArrayList<Target>();
+        numberOfTargetsLabel.setText("Number Of Targets: " + targets.size());
+        addFilterButton.setEnabled(false);
+        connectorsDrop.setEnabled(false);
+        generateCommand.setEnabled(false);
+    }
+
+    private void copyCommandToClipboard(String finalCommand) {
+        StringSelection stringSelection = new StringSelection(finalCommand);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(stringSelection, null);
+    }
+
+    private void cleanConstantInfoPanel() {
+        cluster.setText("");
+        regressions.setText("");
+        budget.setText("");
+        stepping.setText("");
+    }
+
+    private void addFilterTextField() {
+        JTextField filterTextField = new JTextField("Filter", 40);
+        filtersTextFieldsList.add(filterTextField);
+
+        filtersPanel.add(filterTextField);
+        targetsArea.revalidate();
+        targetsArea.repaint();
+    }
+
+    private void cleanTargetPanel() {
+        for (JTextField filterTextField : filtersTextFieldsList) {
+            filtersPanel.remove(filterTextField);
         }
-        textFields = new ArrayList<JTextField>();
-        invalidate();
-        repaint();
+        filtersTextFieldsList = new ArrayList<JTextField>();
+        targetsArea.revalidate();
+        targetsArea.repaint();
     }
+
+    private void setCurrentTargetInfo() {
+        List<String> filters = new ArrayList<String>();
+        Target target = targets.get(targets.size() - 1);
+        for (JTextField filterTextField : filtersTextFieldsList) {
+            filters.add(filterTextField.getText());
+        }
+
+        target.setConnector(connectorsDrop.getSelectedItem().toString());
+        target.setFilter(filters);
+    }
+
+    private void createConstantArea() {
+        JLabel clusterTitle, steppingTitle, budgetTitle;
+        JLabel regressionsTitle;
+
+        constantInfoArea = new JPanel(new GridLayout(5, 1));
+
+        JPanel titlesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 175, 10));
+        clusterTitle = new JLabel("Cluster");
+        steppingTitle = new JLabel("Stepping");
+        budgetTitle = new JLabel("Budget");
+        titlesPanel.add(clusterTitle);
+        titlesPanel.add(steppingTitle);
+        titlesPanel.add(budgetTitle);
+
+        JPanel textFieldsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 100, 10));
+        cluster = new JTextField(10);
+        stepping = new JTextField(10);
+        budget = new JTextField(10);
+        textFieldsPanel.add(cluster);
+        textFieldsPanel.add(stepping);
+        textFieldsPanel.add(budget);
+
+        JPanel regressionsTitlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 175, 10));
+        regressionsTitle = new JLabel("Regressions");
+        regressionsTitlePanel.add(regressionsTitle);
+
+        JPanel regressionsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 175, 10));
+        regressions = new JTextField(100);
+        regressionsPanel.add(regressions);
+
+        JPanel numberOfTargetsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 175, 10));
+        numberOfTargetsLabel = new JLabel("Number Of Targets: " + targets.size());
+        numberOfTargetsPanel.add(numberOfTargetsLabel);
+
+        constantInfoArea.add(titlesPanel);
+        constantInfoArea.add(textFieldsPanel);
+        constantInfoArea.add(regressionsTitlePanel);
+        constantInfoArea.add(regressionsPanel);
+        constantInfoArea.add(numberOfTargetsPanel);
+    }
+
+    private void createTargetArea() {
+        targetsArea = new JPanel(new GridLayout(1, 2));
+
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        addTargetButton = new Button("Add Target");
+        addFilterButton = new Button("Add Filter");
+        generateCommand = new Button("Generate Command");
+        resetTargetButton = new Button("Reset Target");
+        resetAllButton = new Button("Reset All");
+        connectorsDrop = new JComboBox(connectors);
+
+        addFilterButton.setEnabled(false);
+        connectorsDrop.setEnabled(false);
+        generateCommand.setEnabled(false);
+        buttonPanel.add(resetAllButton);
+        buttonPanel.add(resetTargetButton);
+        buttonPanel.add(addTargetButton);
+        buttonPanel.add(addFilterButton);
+        buttonPanel.add(connectorsDrop);
+        buttonPanel.add(generateCommand);
+
+        filtersPanel = new JPanel();
+        filtersPanel.setLayout(new BoxLayout(filtersPanel, BoxLayout.Y_AXIS));
+
+        targetsArea.add(buttonPanel);
+        targetsArea.add(filtersPanel);
+    }
+
 
     public static void main(String[] args) {
-        MainWindow ex = new MainWindow();
-
-        ex.setSize(1000, 1000);
-        ex.setLayout(null);
-        ex.setVisible(true);
+        MainWindow mainWindow = new MainWindow();
+        mainWindow.setSize(new Dimension(1450, 750));
+        mainWindow.setLayout(new FlowLayout());
+        mainWindow.setVisible(true);
     }
 }
